@@ -14,18 +14,16 @@
 //#define KICKER_PERIPHERALS
 //#define RECEIVER_PERIPHERALS
 #define LED_STRIP
-#define TACKLE
+//#define TACKLE
 //#define ROTATION_LOCK
 /*
    Vesion History
-
    1.0.0 - AARON ROGGOW - adding pre-existant functionality for basic drivetrain, omniwheel drivetrain, center, qb, and kicker, and calibration and kids mode
    1.0.1 - Matt Bull- fixed eStop functionality for if controller becomes disconnected, added ability to disconnect controller in calibration mode when PS is pressed
    1.0.2 - Matt Bull- added ability to disconnect controller to the main loop for testing eStop
    1.0.3 - Aaron Roggow - added compass code to quarterback (rotation_lock)
-   1.0.4 - Aaron Roggow - added red led
+   1.0.4 - Jacob Gehring - fixed some errors involving LED's and drivetrain. Fixed the warning statement at the end
    
-
    Controls...
    SELECT - enter/exit CALIBRATION MODE - note, will exit into normal drive mode
       UP/DOWN - adjust motor offset
@@ -53,7 +51,6 @@
       R1 - thrower reload
    Rotation Lock
       L3 - reset orientation
-
    Pins...
    LED Strip -
     Green - 12
@@ -67,9 +64,9 @@
     Motor2 - 8
     Motor3 - 9
     Motor4 - 10
-   QB Thrower - 5
-   Kicker - 5
-   Center - 5
+   QB Thrower - 11
+   Kicker - 11
+   Center - 11
 */
 
 // mode definitions
@@ -152,7 +149,7 @@ int turnHandicap = 1;
 #endif
 
 #ifdef CENTER_PERIPHERALS
-#define CENTER_RELEASE        5
+#define CENTER_RELEASE        11
 #define CENTER_RELEASE_DOWN   120
 #define CENTER_RELEASE_UP     70
 
@@ -160,7 +157,7 @@ Servo centerRelease;
 #endif
 
 #ifdef QB_PERIPHERALS
-#define QB_THROWER            5
+#define QB_THROWER            11
 Servo qbThrower;
 #define TRIANGLE_THROW        175
 #define CIRCLE_THROW          125
@@ -172,7 +169,7 @@ int throwOffset = 0;                //used to adjust strength of cross and circl
 #endif
 
 #ifdef KICKER_PERIPHERALS
-#define KICKER_MOTOR          5
+#define KICKER_MOTOR          11
 #define KICKER_POWER          175
 #define KICKER_RELOAD         85
 Servo kicker;
@@ -606,22 +603,26 @@ void driveCtrl()
     }
   }
   
-#endif
   Serial.print(rotationCorrect);
   Serial.print("   ");
   Serial.println(desiredRotation);
+  motor1Drive += rotationCorrect;
+  motor2Drive += rotationCorrect;
+  motor3Drive += rotationCorrect;
+  motor4Drive += rotationCorrect;
+#endif
 
   motor4Drive = ((magn * (sin(angle + PI_OVER_4 + motorReverse)) / handicap)
-                + (float)(turnHandicap * turnInput) + 90 + rotationCorrect + motorCorrect);
+                + (float)(turnHandicap * turnInput) + 90 + motorCorrect);
 
   motor1Drive = ((magn * (sin(angle + PI_OVER_4 + PI_OVER_2 + motorReverse)) / handicap)                          
-                + (float)(turnHandicap * turnInput) + 90 + rotationCorrect + motorCorrect);
+                + (float)(turnHandicap * turnInput) + 90 + motorCorrect);
 
   motor2Drive = ((magn * (sin(angle + PI_OVER_4 + PI_OVER_2 + PI_OVER_2 + motorReverse)) / handicap)              
-                + (float)(turnHandicap * turnInput) + 90 + rotationCorrect + motorCorrect);
+                + (float)(turnHandicap * turnInput) + 90 + motorCorrect);
 
   motor3Drive = ((magn * (sin(angle + PI_OVER_4 + PI_OVER_2 + PI_OVER_2 + PI_OVER_2 + motorReverse)) / handicap)  
-                + (float)(turnHandicap * turnInput) + 90 + rotationCorrect + motorCorrect);
+                + (float)(turnHandicap * turnInput) + 90 + motorCorrect);
 
   if (motor1Drive < 5)motor1Drive = 5;
   else if (motor1Drive > 175)motor1Drive = 175;
@@ -798,6 +799,6 @@ void centerCtrl()
 
 #ifndef BASIC_DRIVETRAIN
 #ifndef OMNIWHEEL_DRIVETRAIN
-#warning You don't have a drivetrain enabled! Don't expect this robot to drive!
+#warning "You don't have a drivetrain enabled! Don't expect this robot to drive!"
 #endif
 #endif
